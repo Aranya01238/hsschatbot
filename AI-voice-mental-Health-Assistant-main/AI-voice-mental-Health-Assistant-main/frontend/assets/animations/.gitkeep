@@ -1,0 +1,6 @@
+# Avatar Animation Files
+# Place avatar animation video files here:
+# - idle.mp4 - Default idle animation
+# - listening.mp4 - Animation when listening to user
+# - speaking.mp4 - Animation when system is speaking  
+# - thinking.mp4 - Animation when processing user input

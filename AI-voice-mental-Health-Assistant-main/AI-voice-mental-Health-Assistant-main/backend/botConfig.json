@@ -1,0 +1,234 @@
+{
+    "meta": {
+        "botName": "Aura",
+        "disclaimer": "I am an AI support tool, not a doctor. This is a screening, not a diagnosis."
+    },
+    "crisis": {
+        "keywords": [
+            "suicide",
+            "kill myself",
+            "end my life",
+            "hurt myself",
+            "self harm",
+            "die",
+            "better off dead",
+            "hurt others"
+        ],
+        "response": "I’m really glad you spoke up. I’m not equipped to help with emergencies. Please contact a human immediately. In India, call Kiran at 1800-599-0019 or dial 112. You deserve real support right now."
+    },
+    "intro": {
+        "welcome": "Hello. I’m Aura. I’m here to help you check in with your mental well-being. I am not a doctor, and this is not a diagnosis. Would you like to continue?",
+        "yesKeywords": [
+            "yes",
+            "yeah",
+            "sure",
+            "okay"
+        ],
+        "noKeywords": [
+            "no",
+            "not now"
+        ],
+        "exitResponse": "That’s okay. You can come back anytime."
+    },
+    "moodSelection": {
+        "prompt": "How have you been feeling lately? You can say sad, anxious, stressed, low energy, or not sure.",
+        "routing": {
+            "PHQ9": [
+                "sad",
+                "depressed",
+                "down",
+                "hopeless",
+                "empty"
+            ],
+            "GAD7": [
+                "anxious",
+                "worried",
+                "panic",
+                "nervous"
+            ],
+            "GHQ12": [
+                "stressed",
+                "overwhelmed",
+                "burnt out",
+                "tired",
+                "not sure"
+            ]
+        }
+    },
+    "answerMapping": {
+        "standardScale": {
+            "0": [
+                "not at all",
+                "never"
+            ],
+            "1": [
+                "sometimes",
+                "few days",
+                "a little"
+            ],
+            "2": [
+                "often",
+                "more than half"
+            ],
+            "3": [
+                "always",
+                "nearly every day"
+            ]
+        },
+        "ghqScale": {
+            "0": [
+                "better than usual",
+                "not at all",
+                "never",
+                "no"
+            ],
+            "1": [
+                "same as usual",
+                "sometimes",
+                "few days",
+                "a little"
+            ],
+            "2": [
+                "worse than usual",
+                "often",
+                "more than half"
+            ],
+            "3": [
+                "much worse",
+                "always",
+                "nearly every day"
+            ]
+        },
+        "clarifyPrompt": "Would you say that was not at all, sometimes, often, or nearly every day?"
+    },
+    "questionnaires": {
+        "PHQ9": {
+            "name": "Depression Screening",
+            "crisisQuestionIndex": 8,
+            "questions": [
+                "Over the last two weeks, have you felt little interest or pleasure in doing things?",
+                "Have you been feeling down, depressed, or hopeless?",
+                "Have you had trouble falling or staying asleep, or sleeping too much?",
+                "Have you been feeling tired or having little energy?",
+                "Have you had poor appetite or overeating?",
+                "Have you been feeling bad about yourself or that you are a failure?",
+                "Have you had trouble concentrating on things like reading or watching TV?",
+                "Have you been moving or speaking very slowly, or the opposite — very restless?",
+                "Have you had thoughts that you would be better off dead or hurting yourself?"
+            ],
+            "thresholds": {
+                "minimal": [
+                    0,
+                    4
+                ],
+                "mild": [
+                    5,
+                    9
+                ],
+                "moderate": [
+                    10,
+                    14
+                ],
+                "severe": [
+                    15,
+                    27
+                ]
+            }
+        },
+        "GAD7": {
+            "name": "Anxiety Screening",
+            "questions": [
+                "Over the last two weeks, have you felt nervous or on edge?",
+                "Have you been unable to stop or control worrying?",
+                "Have you worried too much about different things?",
+                "Have you had trouble relaxing?",
+                "Have you been so restless that it is hard to sit still?",
+                "Have you become easily annoyed or irritable?",
+                "Have you felt afraid as if something awful might happen?"
+            ],
+            "thresholds": {
+                "minimal": [
+                    0,
+                    4
+                ],
+                "mild": [
+                    5,
+                    9
+                ],
+                "moderate": [
+                    10,
+                    14
+                ],
+                "severe": [
+                    15,
+                    21
+                ]
+            }
+        },
+        "GHQ12": {
+            "name": "General Stress Screening",
+            "questions": [
+                "Have you been able to concentrate on what you are doing?",
+                "Have you lost much sleep over worry?",
+                "Have you felt you are playing a useful role in things?",
+                "Have you felt capable of making decisions?",
+                "Have you felt constantly under strain?",
+                "Have you felt you couldn't overcome difficulties?",
+                "Have you been able to enjoy normal activities?",
+                "Have you been able to face problems?",
+                "Have you been feeling unhappy or depressed?",
+                "Have you been losing confidence?",
+                "Have you been thinking of yourself as worthless?",
+                "Have you been feeling reasonably happy?"
+            ],
+            "thresholds": {
+                "normal": [
+                    0,
+                    12
+                ],
+                "moderate": [
+                    13,
+                    20
+                ],
+                "severe": [
+                    21,
+                    36
+                ]
+            }
+        }
+    },
+    "results": {
+        "minimal": {
+            "message": "Your responses suggest mild distress. This is something many people experience.",
+            "suggestions": [
+                "Try slow breathing for two minutes.",
+                "Take a short walk outdoors.",
+                "Write your thoughts before sleep."
+            ]
+        },
+        "mild": {
+            "message": "You seem to be carrying some stress right now. You do not have to manage it alone.",
+            "suggestions": [
+                "Keep a consistent sleep schedule.",
+                "Talk to a trusted friend.",
+                "Try grounding exercises."
+            ]
+        },
+        "moderate": {
+            "message": "You appear to be dealing with a significant amount of emotional strain.",
+            "suggestions": [
+                "Consider speaking with a therapist.",
+                "Practice daily relaxation routines.",
+                "Reduce caffeine and improve sleep."
+            ]
+        },
+        "severe": {
+            "message": "Your responses show high distress. Professional support is strongly recommended.",
+            "suggestions": [
+                "Seek help from a licensed therapist.",
+                "Talk to a trusted family member today.",
+                "Contact a mental health helpline if needed."
+            ]
+        }
+    }
+}

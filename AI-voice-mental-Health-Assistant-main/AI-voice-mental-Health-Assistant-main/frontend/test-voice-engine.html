@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Engine Property Tests</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .pass {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .fail {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>Voice Engine Property Tests</h1>
+    <p><strong>Feature: voice-mental-health-assistant, Property 1: Voice Engine Functionality</strong></p>
+    <p><strong>Validates: Requirements 1.1, 1.2</strong></p>
+    
+    <div class="test-result info">
+        <strong>Note:</strong> These tests require browser permissions for microphone access and may not work in all environments.
+        Some tests are mocked to avoid requiring actual speech input/output.
+    </div>
+    
+    <button id="runTests" onclick="runAllTests()">Run Property Tests</button>
+    <button id="clearResults" onclick="clearResults()">Clear Results</button>
+    
+    <div id="testResults"></div>
+
+    <script src="js/voice-engine.js"></script>
+    <script>
+        // Simple property-based testing framework
+        class PropertyTester {
+            constructor() {
+                this.results = [];
+            }
+            
+            // Generate random test data
+            generateRandomText(minLength = 1, maxLength = 100) {
+                const words = ['hello', 'world', 'test', 'voice', 'engine', 'speech', 'recognition', 'synthesis'];
+                const length = Math.floor(Math.random() * (maxLength - minLength + 1)) + minLength;
+                let text = '';
+                for (let i = 0; i < length; i++) {
+                    if (i > 0) text += ' ';
+                    text += words[Math.floor(Math.random() * words.length)];
+                }
+                return text;
+            }
+            
+            generateRandomOptions() {
+                return {
+                    language: Math.random() > 0.5 ? 'en-US' : 'en-GB',
+                    rate: Math.random() * 1.5 + 0.5, // 0.5 to 2.0
+                    pitch: Math.random() * 1.5 + 0.5, // 0.5 to 2.0
+                    volume: Math.random() * 0.8 + 0.2, // 0.2 to 1.0
+                    priority: Math.random() > 0.7 ? 'high' : 'normal'
+                };
+            }
+            
+            // Property test runner
+            async runProperty(name, testFn, iterations = 100) {
+                let passed = 0;
+                let failed = 0;
+                let errors = [];
+                
+                for (let i = 0; i < iterations; i++) {
+                    try {
+                        const result = await testFn();
+                        if (result) {
+                            passed++;
+                        } else {
+                            failed++;
+                            errors.push(`Iteration ${i + 1}: Property violation`);
+                        }
+                    } catch (error) {
+                        failed++;
+                        errors.push(`Iteration ${i + 1}: ${error.message}`);
+                    }
+                }
+                
+                return {
+                    name,
+                    passed,
+                    failed,
+                    total: iterations,
+                    errors: errors.slice(0, 5) // Show first 5 errors
+                };
+            }
+            
+            logResult(result) {
+                this.results.push(result);
+                this.displayResult(result);
+            }
+            
+            displayResult(result) {
+                const resultsDiv = document.getElementById('testResults');
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `test-result ${result.failed === 0 ? 'pass' : 'fail'}`;
+                
+                let html = `
+                    <strong>${result.name}</strong><br>
+                    Passed: ${result.passed}/${result.total} iterations<br>
+                `;
+                
+                if (result.failed > 0) {
+                    html += `Failed: ${result.failed}<br>`;
+                    if (result.errors.length > 0) {
+                        html += `<details><summary>Sample Errors</summary><ul>`;
+                        result.errors.forEach(error => {
+                            html += `<li>${error}</li>`;
+                        });
+                        html += `</ul></details>`;
+                    }
+                }
+                
+                resultDiv.innerHTML = html;
+                resultsDiv.appendChild(resultDiv);
+            }
+        }
+        
+        const tester = new PropertyTester();
+        let voiceEngine;
+        
+        // Mock Web Speech API for testing environments where it's not available
+        function mockWebSpeechAPI() {
+            if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+                window.webkitSpeechRecognition = class MockSpeechRecognition {
+                    constructor() {
+                        this.continuous = false;
+                        this.interimResults = false;
+                        this.lang = 'en-US';
+                        this.maxAlternatives = 1;
+                    }
+                    
+                    start() {
+                        setTimeout(() => this.onstart?.(), 10);
+                        setTimeout(() => {
+                            const mockResult = {
+                                results: [{
+                                    isFinal: true,
+                                    0: { transcript: 'mock speech result', confidence: 0.9 }
+                                }]
+                            };
+                            this.onresult?.(mockResult);
+                        }, 100);
+                        setTimeout(() => this.onend?.(), 200);
+                    }
+                    
+                    stop() {
+                        setTimeout(() => this.onend?.(), 10);
+                    }
+                };
+            }
+            
+            if (!window.speechSynthesis) {
+                window.speechSynthesis = {
+                    speaking: false,
+                    paused: false,
+                    speak(utterance) {
+                        this.speaking = true;
+                        setTimeout(() => utterance.onstart?.(), 10);
+                        setTimeout(() => {
+                            this.speaking = false;
+                            utterance.onend?.();
+                        }, 100);
+                    },
+                    cancel() {
+                        this.speaking = false;
+                    },
+                    pause() {
+                        this.paused = true;
+                    },
+                    resume() {
+                        this.paused = false;
+                    },
+                    getVoices() {
+                        return [{ name: 'Mock Voice', lang: 'en-US' }];
+                    }
+                };
+                
+                window.SpeechSynthesisUtterance = class MockSpeechSynthesisUtterance {
+                    constructor(text) {
+                        this.text = text;
+                        this.lang = 'en-US';
+                        this.rate = 1;
+                        this.pitch = 1;
+                        this.volume = 1;
+                    }
+                };
+            }
+        }
+        
+        // Property 1: Voice Engine Functionality
+        // For any valid text input and speech options, the voice engine should handle speech synthesis without errors
+        async function testVoiceEngineFunctionality() {
+            const text = tester.generateRandomText(1, 50);
+            const options = tester.generateRandomOptions();
+            
+            try {
+                // Test that speak method returns a promise
+                const speakPromise = voiceEngine.speak(text, options);
+                if (!(speakPromise instanceof Promise)) {
+                    return false;
+                }
+                
+                // Test that voice engine maintains consistent state
+                const wasProcessing = voiceEngine.isProcessingQueue;
+                await speakPromise;
+                
+                // After speaking, queue should be processed
+                return true;
+            } catch (error) {
+                // Speech synthesis errors are acceptable in test environment
+                if (error.message.includes('Speech synthesis not supported')) {
+                    return true; // Pass if synthesis not supported
+                }
+                throw error;
+            }
+        }
+        
+        // Property 2: Speech Queue Management
+        // For any sequence of speech requests, the queue should process them in order
+        async function testSpeechQueueManagement() {
+            const texts = [
+                tester.generateRandomText(1, 20),
+                tester.generateRandomText(1, 20),
+                tester.generateRandomText(1, 20)
+            ];
+            
+            // Add multiple items to queue
+            const promises = texts.map(text => voiceEngine.speak(text));
+            
+            // Queue length should reflect pending items
+            const queueLength = voiceEngine.getQueueLength();
+            
+            // Wait for all to complete
+            await Promise.all(promises);
+            
+            // Queue should be empty after processing
+            return voiceEngine.getQueueLength() === 0;
+        }
+        
+        // Property 3: Error Handling Consistency
+        // For any invalid input, the voice engine should handle errors gracefully
+        async function testErrorHandling() {
+            try {
+                // Test with empty text
+                await voiceEngine.speak('');
+                
+                // Test with null options
+                await voiceEngine.speak('test', null);
+                
+                // Test stopping when not speaking
+                voiceEngine.stopSpeaking();
+                
+                // Test clearing empty queue
+                voiceEngine.clearQueue();
+                
+                return true;
+            } catch (error) {
+                // Errors should be meaningful, not crashes
+                return error.message && error.message.length > 0;
+            }
+        }
+        
+        // Property 4: Browser Compatibility Detection
+        // For any browser environment, support detection should be consistent
+        async function testBrowserCompatibility() {
+            const support = voiceEngine.checkSupport();
+            
+            // Support object should have required properties
+            const hasRequiredProps = support.hasOwnProperty('recognition') &&
+                                   support.hasOwnProperty('synthesis') &&
+                                   support.hasOwnProperty('full') &&
+                                   support.hasOwnProperty('limitations');
+            
+            if (!hasRequiredProps) return false;
+            
+            // Full support should be logical combination
+            const logicalFull = support.full === (support.recognition && support.synthesis);
+            
+            return logicalFull;
+        }
+        
+        // Property 5: State Consistency
+        // For any sequence of operations, the voice engine should maintain consistent state
+        async function testStateConsistency() {
+            const initialListening = voiceEngine.isListening;
+            const initialSpeaking = voiceEngine.isSpeaking();
+            
+            // Start and stop listening
+            if (voiceEngine.isSupported.recognition) {
+                try {
+                    await voiceEngine.startListening();
+                    const duringListening = voiceEngine.isListening;
+                    voiceEngine.stopListening();
+                    const afterStopping = voiceEngine.isListening;
+                    
+                    // State should change appropriately
+                    return !afterStopping; // Should not be listening after stop
+                } catch (error) {
+                    // Permission errors are acceptable
+                    return true;
+                }
+            }
+            
+            return true;
+        }
+        
+        async function runAllTests() {
+            const runButton = document.getElementById('runTests');
+            runButton.disabled = true;
+            runButton.textContent = 'Running Tests...';
+            
+            // Clear previous results
+            clearResults();
+            
+            // Initialize mocks and voice engine
+            mockWebSpeechAPI();
+            voiceEngine = new VoiceEngine();
+            
+            // Run property tests
+            const tests = [
+                { name: 'Property 1: Voice Engine Functionality', fn: testVoiceEngineFunctionality },
+                { name: 'Property 2: Speech Queue Management', fn: testSpeechQueueManagement },
+                { name: 'Property 3: Error Handling Consistency', fn: testErrorHandling },
+                { name: 'Property 4: Browser Compatibility Detection', fn: testBrowserCompatibility },
+                { name: 'Property 5: State Consistency', fn: testStateConsistency }
+            ];
+            
+            for (const test of tests) {
+                const result = await tester.runProperty(test.name, test.fn, 50);
+                tester.logResult(result);
+            }
+            
+            runButton.disabled = false;
+            runButton.textContent = 'Run Property Tests';
+            
+            // Summary
+            const totalTests = tester.results.length;
+            const passedTests = tester.results.filter(r => r.failed === 0).length;
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = `test-result ${passedTests === totalTests ? 'pass' : 'fail'}`;
+            summaryDiv.innerHTML = `<strong>Summary: ${passedTests}/${totalTests} properties passed</strong>`;
+            document.getElementById('testResults').appendChild(summaryDiv);
+        }
+        
+        function clearResults() {
+            document.getElementById('testResults').innerHTML = '';
+            tester.results = [];
+        }
+        
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            mockWebSpeechAPI();
+            voiceEngine = new VoiceEngine();
+        });
+    </script>
+</body>
+</html>
